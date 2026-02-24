@@ -59,14 +59,19 @@ class RequirementAnalysisAgent:
 
 请以 JSON 格式提供你的分析结果。"""
     
-    ANALYSIS_PROMPT_TEMPLATE = """请分析以下需求：
+    ANALYSIS_PROMPT_TEMPLATE = """我的需求是：
 
-需求描述：
 {requirement}
+
+---
+
+参考以下历史 PRD 文档（如果与当前需求无相关性请不必理会）：
 
 {historical_context}
 
-请提供结构化的分析结果，使用以下 JSON 格式：
+---
+
+请基于需求描述和历史 PRD 参考，提供结构化的分析结果，使用以下 JSON 格式：
 
 ```json
 {{
@@ -85,6 +90,8 @@ class RequirementAnalysisAgent:
 ```
 
 注意：
+- 如果历史 PRD 中有相关的功能点、业务规则或约束，请参考并保持一致性
+- 如果历史 PRD 与当前需求无关，请忽略它们，专注于当前需求
 - 功能点应该清晰、可测试
 - 业务规则应该明确、可验证
 - 输入输出规格应该详细、具体
@@ -123,14 +130,17 @@ class RequirementAnalysisAgent:
         self.logger.info(f"开始分析需求，长度: {len(requirement)} 字符")
         
         # 准备历史上下文
-        historical_context = ""
+        historical_context = "无历史 PRD 参考"
         if context and 'historical_prds' in context:
             prds = context['historical_prds']
             if prds:
-                historical_context = "参考历史 PRD：\n"
+                historical_context = ""
                 for i, prd in enumerate(prds[:3], 1):  # 最多使用前 3 个
-                    historical_context += f"\n{i}. {prd.get('title', 'N/A')}\n"
-                    historical_context += f"   {prd.get('content', '')[:200]}...\n"
+                    historical_context += f"\n### 历史 PRD {i}: {prd.get('title', 'N/A')}\n"
+                    content = prd.get('content', '')
+                    # 显示更多内容以提供更好的上下文
+                    historical_context += f"{content[:500]}...\n"
+                    historical_context += f"(相似度分数: {prd.get('score', 'N/A')})\n"
         
         # 构建提示词
         prompt = self.ANALYSIS_PROMPT_TEMPLATE.format(

@@ -71,14 +71,19 @@ class TestDesignAgent:
 
 请以 JSON 数组格式输出测试用例。"""
     
-    DESIGN_PROMPT_TEMPLATE = """基于以下需求分析，设计全面的测试用例：
+    DESIGN_PROMPT_TEMPLATE = """我的需求分析结果如下：
 
-需求分析：
 {analysis}
+
+---
+
+参考以下历史测试用例（如果与当前需求无相关性请不必理会）：
 
 {historical_cases}
 
-请设计测试用例，使用以下 JSON 数组格式：
+---
+
+请基于需求分析结果和历史测试用例参考，设计全面的测试用例，使用以下 JSON 数组格式：
 
 ```json
 [
@@ -96,12 +101,14 @@ class TestDesignAgent:
 ```
 
 注意：
-- 确保覆盖所有功能点
+- 如果历史测试用例中有相似的测试场景，请参考其测试步骤的表达方式和结构
+- 如果历史测试用例与当前需求无关，请忽略它们，专注于当前需求
+- 确保覆盖需求分析中的所有功能点
 - 包含异常和边界值测试
-- 步骤应该清晰、可操作
+- 步骤应该清晰、可操作，参考历史用例的表达风格
 - 预期结果应该具体、可衡量
-- 优先级应该合理分配
-- 类型应该正确分类"""
+- 优先级应该合理分配（high/medium/low）
+- 类型应该正确分类（functional/boundary/exception/security/performance）"""
     
     def __init__(self, brconnector_client: BRConnectorClient):
         """
@@ -137,14 +144,23 @@ class TestDesignAgent:
         )
         
         # 准备历史测试用例上下文
-        historical_context = ""
+        historical_context = "无历史测试用例参考"
         if historical_cases:
-            historical_context = "参考历史测试用例：\n"
-            for i, case in enumerate(historical_cases[:3], 1):  # 最多使用前 3 个
-                historical_context += f"\n{i}. {case.get('title', 'N/A')}\n"
+            historical_context = ""
+            for i, case in enumerate(historical_cases[:5], 1):  # 最多使用前 5 个
+                historical_context += f"\n### 历史测试用例 {i}: {case.get('title', 'N/A')}\n"
+                historical_context += f"**前置条件**: {case.get('preconditions', 'N/A')}\n"
+                
+                # 显示完整的测试步骤
                 if 'steps' in case:
-                    steps_preview = case['steps'][:2] if isinstance(case['steps'], list) else []
-                    historical_context += f"   步骤: {', '.join(str(s) for s in steps_preview)}...\n"
+                    steps = case['steps'] if isinstance(case['steps'], list) else []
+                    historical_context += f"**测试步骤**:\n"
+                    for j, step in enumerate(steps[:10], 1):  # 最多显示 10 个步骤
+                        historical_context += f"  {j}. {step}\n"
+                
+                historical_context += f"**预期结果**: {case.get('expected_result', 'N/A')}\n"
+                historical_context += f"**优先级**: {case.get('priority', 'N/A')}\n"
+                historical_context += f"(相似度分数: {case.get('score', 'N/A')})\n"
         
         # 构建提示词
         prompt = self.DESIGN_PROMPT_TEMPLATE.format(
