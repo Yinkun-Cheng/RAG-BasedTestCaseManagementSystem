@@ -353,6 +353,7 @@ func (s *service) ComparePRDVersions(prdID string, version1, version2 int) (*Ver
 		TitleChanged:   v1.Title != v2.Title,
 		ContentChanged: v1.Content != v2.Content,
 	}
+	//TODO: 目前只是完全校验是否一致，后续需要更改为校验答大体意思
 
 	if changes.TitleChanged {
 		changes.OldTitle = v1.Title
@@ -531,3 +532,7 @@ func (s *service) deletePRDFromVector(prdID string) {
 	ctx := context.Background()
 	_ = s.vectorRepo.DeletePRD(ctx, prdID)
 }
+
+
+目前行业里的TestCase多半散在Excel或xmind里，想复用一条历史用例基本靠翻表格和思维图。迭代版本一多，就会出现回捞困难，找起来耗时耗力，就算翻到了Case，还得再去理解当时的PRD和上下文。所以最近做了个测试用例知识库，把用例当成结构化资产来管理，优先级、步骤、预期结果、版本和关联关系都能落到字段里，再配合语义检索，用自然语言就能直接问到需要的用例，还可以让 AI 参考历史用例以及PRD，通过上传新版本PRD生成相同风格和维度的TestCase，case可包含对新PRD可能影响到的其他功能。
+底层用PostgreSQL管结构化数据和关联关系，Weaviate做向量检索，整体是双存储的混合检索方案。技术路线不算新，但我发现按测试领域做深度定制之后，效果比Notion AIDify这种按文档检索的通用知识库要稳不少，

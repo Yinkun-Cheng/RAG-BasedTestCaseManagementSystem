@@ -372,9 +372,10 @@ INSERT INTO tags (id, project_id, name, color, created_at) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- 插入全局配置（Embedding API 配置）
+-- 注意：请在部署后通过管理界面或环境变量设置真实的 API Key
 INSERT INTO global_settings (id, key, value, type, description, created_at) VALUES
 ('gs-1', 'embedding_provider', 'volcano_ark', 'string', 'Embedding 服务提供商: mock, openai, volcano_ark', '2025-01-01 00:00:00'),
-('gs-2', 'embedding_api_key', '31917e10-879a-417c-9983-241904b18d5d', 'string', 'Embedding API Key', '2025-01-01 00:00:00'),
+('gs-2', 'embedding_api_key', 'YOUR_API_KEY_HERE', 'string', 'Embedding API Key（请替换为真实的 API Key）', '2025-01-01 00:00:00'),
 ('gs-3', 'embedding_base_url', 'https://ark.cn-beijing.volces.com', 'string', 'Embedding API Base URL', '2025-01-01 00:00:00'),
 ('gs-4', 'embedding_model', 'ep-20260121110525-5mmss', 'string', 'Embedding 模型名称', '2025-01-01 00:00:00')
 ON CONFLICT (key) DO NOTHING;

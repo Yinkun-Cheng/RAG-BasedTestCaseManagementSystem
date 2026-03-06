@@ -1,8 +1,9 @@
 # Kiro IDE 配置文件夹（仅本地开发使用）
+# 注意：.kiro 文件夹由 Kiro IDE 自动管理，会在需要时自动创建
 .kiro/
 
-# IDE 配置
-.vscode/
+# IDE 配置（保留 .vscode 用于团队共享配置）
+# .vscode/
 .idea/
 
 # 操作系统文件
@@ -15,6 +16,14 @@ Thumbs.db
 *.swp
 *~
 
-# 环境变量文件
+# 环境变量文件（包含敏感信息）
 .env
 .env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# 数据库备份和敏感数据
+*.sql.backup
+*_with_secrets.sql
+local_*.sql
